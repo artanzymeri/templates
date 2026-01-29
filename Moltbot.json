@@ -1,0 +1,20 @@
+[
+  {
+    "type": 2,
+    "title": "Moltbot Gateway (single instance)",
+    "description": "Deploy one Moltbot/Clawdbot gateway instance (use unique host ports + unique config/workspace directories per instance).",
+    "categories": ["AI", "Automation"],
+    "platform": "linux",
+    "logo": "https://raw.githubusercontent.com/moltbot/moltbot/refs/heads/main/ui/public/favicon.ico",
+    "env": [
+      { "name": "STACK_NAME", "label": "Container name prefix", "default": "clawd-p1" },
+      { "name": "CLAWDBOT_IMAGE", "label": "Image (pin a tag)", "default": "ghcr.io/moltbot/clawdbot:2026.1.24-1" },
+      { "name": "CLAWDBOT_CONFIG_DIR", "label": "Host config dir", "default": "/opt/moltbot/p1/config" },
+      { "name": "CLAWDBOT_WORKSPACE_DIR", "label": "Host workspace dir", "default": "/opt/moltbot/p1/workspace" },
+      { "name": "HOST_GATEWAY_PORT", "label": "Host gateway port", "default": "18789" },
+      { "name": "HOST_BRIDGE_PORT", "label": "Host bridge port", "default": "18790" },
+      { "name": "CLAWDBOT_GATEWAY_TOKEN", "label": "Gateway token (openssl rand -hex 32)", "default": "" }
+    ],
+    "stackfile": "services:\n  moltbot-gateway:\n    image: ${CLAWDBOT_IMAGE}\n    container_name: ${STACK_NAME:-moltbot}-gateway\n    init: true\n    restart: unless-stopped\n    environment:\n      HOME: /home/node\n      TERM: xterm-256color\n      CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}\n      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}\n      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}\n      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}\n    volumes:\n      - ${CLAWDBOT_CONFIG_DIR}:/home/node/.clawdbot\n      - ${CLAWDBOT_WORKSPACE_DIR}:/home/node/clawd\n    ports:\n      - \"127.0.0.1:${HOST_GATEWAY_PORT}:18789\"\n      - \"127.0.0.1:${HOST_BRIDGE_PORT}:18790\"\n    command:\n      - node\n      - dist/index.js\n      - gateway\n      - --bind\n      - lan\n      - --port\n      - \"18789\"\n"
+  }
+]
